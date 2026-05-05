@@ -36,6 +36,20 @@
       font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Helvetica Neue', sans-serif;
     }
 
+    /* MindARカメラ映像とWebGL canvasのレイヤー制御 */
+    a-scene {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+
+    .a-canvas {
+      background: transparent !important;
+      z-index: 1 !important;
+    }
+
     /* 初期インストラクション */
     #info {
       position: absolute;
@@ -96,7 +110,7 @@
     mindar-image="imageTargetSrc: /assets/markers/profile-sticker.mind; uiScanning: yes; uiLoading: no; filterMinCF: 0.0001; filterBeta: 0.001; warmupTolerance: 5; missTolerance: 5"
     color-space="sRGB"
     embedded
-    renderer="colorManagement: true, physicallyCorrectLights"
+    renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     id="ar-scene"
