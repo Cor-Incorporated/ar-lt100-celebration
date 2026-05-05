@@ -1,0 +1,4 @@
+name = "ar-lt100-celebration"
+compatibility_date = "2026-05-05"
+pages_build_output_dir = "dist"
+

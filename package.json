@@ -1,0 +1,31 @@
+{
+  "name": "ar-lt100-celebration",
+  "version": "1.0.0",
+  "description": "WebAR celebration for 100 weeks consecutive LT presentation milestone",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && npm run copy-assets",
+    "copy-assets": "mkdir -p dist/assets && cp -R public/assets/. dist/assets/ && cp public/_headers dist/_headers",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=ar-lt100-celebration"
+  },
+  "keywords": [
+    "ar",
+    "webar",
+    "mindar",
+    "lt",
+    "celebration",
+    "cor-inc"
+  ],
+  "author": "Terada Kosuke / Cor.Inc",
+  "license": "ISC",
+  "dependencies": {
+    "canvas-confetti": "^1.9.3"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.6.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.0"
+  }
+}
