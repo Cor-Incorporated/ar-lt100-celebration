@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/assets && cp -R public/assets/. dist/assets/ && cp public/_headers dist/_headers",
+    "copy-assets": "mkdir -p dist/assets && cp -R public/assets/. dist/assets/ && cp public/_headers dist/_headers && cp public/debug.html dist/debug.html",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=ar-lt100-celebration"
   },
