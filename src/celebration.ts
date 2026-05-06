@@ -36,7 +36,43 @@ class CelebrationController {
       info: !!this.infoElement,
     });
 
+    this.setupAudioPriming();
     this.setupEventListeners();
+  }
+
+  /**
+   * Audio autoplay policy対策: 最初のユーザー操作 (touch/click) で audio を unlock する。
+   * muted で1度 play→pause すると、以降の play() がブラウザに許可される。
+   */
+  private audioPrimed = false;
+  private setupAudioPriming(): void {
+    const prime = () => {
+      if (this.audioPrimed) return;
+
+      this.fanfare.muted = true;
+      this.fanfare.play()
+        .then(() => {
+          this.fanfare.pause();
+          this.fanfare.currentTime = 0;
+          this.fanfare.muted = false;
+          this.audioPrimed = true;
+          console.log('[Celebration] Audio primed via user gesture');
+          // ヒントを消す
+          const hint = document.querySelector('#audio-hint');
+          if (hint) (hint as HTMLElement).style.display = 'none';
+        })
+        .catch((err) => {
+          console.warn('[Celebration] Audio priming failed (will retry on next gesture):', err);
+          // 失敗時はフラグを戻して再試行可能に
+          this.audioPrimed = false;
+        });
+    };
+
+    // pointerdown は touch + mouse の両方をカバー
+    document.addEventListener('pointerdown', prime, { passive: true });
+    document.addEventListener('touchstart', prime, { passive: true });
+    document.addEventListener('click', prime);
+    console.log('[Celebration] Audio priming listeners attached');
   }
 
   // 誤発火対策のための定数
@@ -209,8 +245,16 @@ class CelebrationController {
 
   private showMessage(): void {
     if (!this.messageOverlay) return;
-    this.messageOverlay.classList.add('show');
-    console.log('[Celebration] message shown');
+    // 100画像をフェードアウト (.show 削除 + .hide 追加で上にスライドアウト)
+    if (this.celebrationImage) {
+      this.celebrationImage.classList.remove('show');
+      this.celebrationImage.classList.add('hide');
+    }
+    // メッセージカードを 0.5秒遅らせて表示 (画像のフェードアウトと被らないように)
+    setTimeout(() => {
+      this.messageOverlay?.classList.add('show');
+      console.log('[Celebration] message shown');
+    }, 500);
   }
 
   private showShareButton(): void {

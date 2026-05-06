@@ -1,60 +1,64 @@
 /* ==========================================================================
    100週セレブレーション スタイル
+   時間軸でステージ分け: 各コンポーネントが主役の瞬間に1つずつ前に出る設計
    ========================================================================== */
 
-/* お祝いSVG画像オーバーレイ (上から降下するアニメーション) */
+/* ----- お祝いSVG画像 (Stage 1: 0-3秒で主役) ----- */
 #celebration-image {
   position: fixed;
   top: 50%;
   left: 50%;
-  width: min(80vw, 500px);
+  width: min(70vw, 420px);
   height: auto;
-  /* 初期状態: 画面外上部にスケール小、不可視 */
+  /* 初期: 画面外上部 */
   transform: translate(-50%, -250%) scale(0.4);
   z-index: 1500;
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity 0.8s ease-out,
-    transform 1.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* 画像レンダリング品質 */
+    opacity 0.7s ease-out,
+    transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   image-rendering: high-quality;
 }
 
+/* show: 中央に降下 */
 #celebration-image.show {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
 
-@media (max-width: 480px) {
-  #celebration-image {
-    width: min(85vw, 380px);
-  }
+/* hide: メッセージ表示時に上にフェードアウト */
+#celebration-image.hide {
+  opacity: 0;
+  transform: translate(-50%, -150%) scale(0.6);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.7s ease-in;
 }
 
-/* 祝福メッセージオーバーレイ */
+/* ----- 祝福メッセージカード (Stage 2: 3-6秒で主役) ----- */
 #celebration-message {
   position: fixed;
-  top: 30%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.5);
   background: linear-gradient(
     135deg,
-    rgba(255, 215, 0, 0.95),
-    rgba(255, 107, 107, 0.95)
+    rgba(255, 215, 0, 0.97),
+    rgba(255, 107, 107, 0.97)
   );
   color: white;
-  padding: 32px 40px;
+  padding: 28px 32px;
   border-radius: 24px;
   text-align: center;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
   z-index: 2000;
   opacity: 0;
   pointer-events: none;
   transition:
     opacity 0.6s ease,
     transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-width: 90%;
+  max-width: 86%;
   box-sizing: border-box;
 }
 
@@ -64,41 +68,45 @@
 }
 
 #celebration-message h1 {
-  margin: 0 0 16px 0;
-  font-size: 28px;
+  margin: 0 0 14px 0;
+  font-size: 26px;
   font-weight: bold;
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
-  line-height: 1.3;
+  line-height: 1.35;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 #celebration-message p {
   margin: 8px 0;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 #celebration-message .signature {
-  margin-top: 16px;
-  font-size: 13px;
-  opacity: 0.9;
+  margin-top: 14px;
+  font-size: 12px;
+  opacity: 0.92;
   letter-spacing: 0.05em;
 }
 
-/* SNS共有ボタン */
+/* ----- SNS共有ボタン (Stage 3: 6秒以降) ----- */
 #share-button {
   position: fixed;
-  bottom: 40px;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%) translateY(120px);
   background: #1DA1F2;
   color: white;
-  padding: 16px 32px;
+  padding: 14px 28px;
   border-radius: 32px;
   border: none;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   cursor: pointer;
-  z-index: 2000;
+  z-index: 2100;
   opacity: 0;
   pointer-events: none;
   transition:
@@ -115,32 +123,58 @@
   pointer-events: auto;
 }
 
-#share-button:hover {
-  background: #1a91da;
-}
-
+#share-button:hover { background: #1a91da; }
 #share-button:active {
   background: #1681c0;
   transform: translateX(-50%) translateY(2px);
 }
 
-/* レスポンシブ調整 */
+/* ----- モバイル調整 (smartphone) ----- */
 @media (max-width: 480px) {
-  #celebration-message h1 {
-    font-size: 24px;
+  #celebration-image {
+    width: min(75vw, 320px);
   }
 
+  #celebration-message {
+    padding: 22px 24px;
+    max-width: 88%;
+  }
+  #celebration-message h1 {
+    font-size: 21px;
+    margin-bottom: 12px;
+  }
   #celebration-message p {
     font-size: 14px;
   }
+  #celebration-message .signature {
+    font-size: 11px;
+  }
 
   #share-button {
-    padding: 14px 24px;
+    padding: 13px 22px;
     font-size: 14px;
+    bottom: 24px;
   }
 }
 
-/* MindARのスキャンUIをカスタマイズ(任意) */
+/* ----- 縦に短い画面 (横向き等) ----- */
+@media (max-height: 600px) {
+  #celebration-image {
+    width: min(40vw, 240px);
+  }
+  #celebration-message {
+    padding: 16px 22px;
+  }
+  #celebration-message h1 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  #celebration-message p {
+    font-size: 13px;
+  }
+}
+
+/* MindARのスキャンUIをカスタマイズ */
 .mindar-ui-overlay {
   font-family: inherit !important;
 }
