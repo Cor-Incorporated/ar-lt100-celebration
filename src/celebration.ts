@@ -39,6 +39,12 @@ class CelebrationController {
     this.setupEventListeners();
   }
 
+  // 誤発火対策のための定数
+  private static readonly STARTUP_GRACE_MS = 2000;  // scene loaded 後この時間は targetFound を無視
+  private static readonly SUSTAIN_MS = 400;          // targetFound から本発火まで持続必要時間
+  private armedAt = Number.POSITIVE_INFINITY;
+  private pendingStartTimer: number | null = null;
+
   private setupEventListeners(): void {
     const scene = document.querySelector('a-scene');
     if (!scene) {
@@ -49,6 +55,9 @@ class CelebrationController {
     scene.addEventListener('loaded', () => {
       console.log('[Celebration] a-scene loaded');
       this.updateStatus('✨ 準備完了!');
+      // スタートアップ猶予開始: STARTUP_GRACE_MS 経過後から targetFound を受け付ける
+      this.armedAt = Date.now() + CelebrationController.STARTUP_GRACE_MS;
+      console.log(`[Celebration] arming in ${CelebrationController.STARTUP_GRACE_MS}ms`);
 
       const marker = document.querySelector('#marker');
       if (!marker) {
@@ -57,14 +66,41 @@ class CelebrationController {
       }
 
       marker.addEventListener('targetFound', () => {
-        console.log('[MindAR] Target Found');
-        this.updateStatus('✅ 認識成功!');
-        this.hideInfo();
-        this.start();
+        const now = Date.now();
+        // 1. スタートアップ猶予中の誤発火を無視
+        if (now < this.armedAt) {
+          console.log(`[MindAR] Early targetFound IGNORED (grace period, ${this.armedAt - now}ms remaining)`);
+          return;
+        }
+        // 2. 既に再生済みなら無視
+        if (this.hasPlayedThisSession) {
+          return;
+        }
+        // 3. 既に debounce 中なら無視 (重複登録防止)
+        if (this.pendingStartTimer !== null) {
+          return;
+        }
+
+        console.log(`[MindAR] Target Found — debouncing ${CelebrationController.SUSTAIN_MS}ms to confirm`);
+        this.updateStatus('🎯 認識中...');
+        this.pendingStartTimer = window.setTimeout(() => {
+          this.pendingStartTimer = null;
+          console.log('[MindAR] Sustained — starting celebration');
+          this.updateStatus('✅ 認識成功!');
+          this.hideInfo();
+          this.start();
+        }, CelebrationController.SUSTAIN_MS);
       });
 
       marker.addEventListener('targetLost', () => {
         console.log('[MindAR] Target Lost');
+        // debounce 中に Lost したら誤検知だったとみなしてキャンセル
+        if (this.pendingStartTimer !== null) {
+          clearTimeout(this.pendingStartTimer);
+          this.pendingStartTimer = null;
+          console.log('[MindAR] Pending start CANCELLED — target lost during debounce');
+          this.updateStatus('✨ 準備完了!');
+        }
       });
     });
 
