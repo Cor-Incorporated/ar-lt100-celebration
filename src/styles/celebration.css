@@ -2,6 +2,36 @@
    100週セレブレーション スタイル
    ========================================================================== */
 
+/* お祝いSVG画像オーバーレイ (上から降下するアニメーション) */
+#celebration-image {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(80vw, 500px);
+  height: auto;
+  /* 初期状態: 画面外上部にスケール小、不可視 */
+  transform: translate(-50%, -250%) scale(0.4);
+  z-index: 1500;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.8s ease-out,
+    transform 1.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* 画像レンダリング品質 */
+  image-rendering: high-quality;
+}
+
+#celebration-image.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@media (max-width: 480px) {
+  #celebration-image {
+    width: min(85vw, 380px);
+  }
+}
+
 /* 祝福メッセージオーバーレイ */
 #celebration-message {
   position: fixed;

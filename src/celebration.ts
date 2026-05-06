@@ -1,14 +1,14 @@
 /**
  * 100週連続LT登壇セレブレーション演出
  *
- * MindARでターゲット検出時に、SVG降下/紙吹雪/ファンファーレ/メッセージ/共有ボタンを
- * 段階的に発火する。一度発火したらセッション中は再発火しない(hasPlayedThisSession)。
+ * MindARでターゲット検出時に、画像降下/紙吹雪/ファンファーレ/メッセージ/共有ボタンを
+ * 段階的に発火する。各エフェクトを try/catch で隔離して、1つ失敗しても他は動く。
  */
 import confetti from 'canvas-confetti';
 
 class CelebrationController {
   private fanfare: HTMLAudioElement;
-  private celebrationImage: Element | null;
+  private celebrationImage: HTMLElement | null;
   private messageOverlay: HTMLElement | null;
   private shareButton: HTMLElement | null;
   private statusElement: HTMLElement | null;
@@ -16,15 +16,25 @@ class CelebrationController {
   private hasPlayedThisSession = false;
 
   constructor() {
+    console.log('[Celebration] Constructor running...');
+
     this.fanfare = new Audio('/assets/sounds/fanfare.mp3');
     this.fanfare.volume = 0.7;
     this.fanfare.preload = 'auto';
 
-    this.celebrationImage = document.querySelector('#celebration-image');
+    this.celebrationImage = document.querySelector<HTMLElement>('#celebration-image');
     this.messageOverlay = document.querySelector<HTMLElement>('#celebration-message');
     this.shareButton = document.querySelector<HTMLElement>('#share-button');
     this.statusElement = document.querySelector<HTMLElement>('#status');
     this.infoElement = document.querySelector<HTMLElement>('#info');
+
+    console.log('[Celebration] DOM refs:', {
+      image: !!this.celebrationImage,
+      message: !!this.messageOverlay,
+      share: !!this.shareButton,
+      status: !!this.statusElement,
+      info: !!this.infoElement,
+    });
 
     this.setupEventListeners();
   }
@@ -37,6 +47,7 @@ class CelebrationController {
     }
 
     scene.addEventListener('loaded', () => {
+      console.log('[Celebration] a-scene loaded');
       this.updateStatus('✨ 準備完了!');
 
       const marker = document.querySelector('#marker');
@@ -64,19 +75,47 @@ class CelebrationController {
 
   start(): void {
     if (this.hasPlayedThisSession) {
-      console.log('[Celebration] Already played this session, skipping');
+      console.log('[Celebration] Already played, skipping');
       return;
     }
     this.hasPlayedThisSession = true;
 
     console.log('[Celebration] 🎉 Starting LT100 celebration!');
 
-    this.playFanfare();
-    this.showCelebrationImage();
-    this.fireConfetti();
+    // 各エフェクトを独立した try/catch で実行(1つ失敗しても他は動く)
+    try {
+      this.playFanfare();
+    } catch (e) {
+      console.error('[Celebration] playFanfare failed:', e);
+    }
 
-    setTimeout(() => this.showMessage(), 5000);
-    setTimeout(() => this.showShareButton(), 10000);
+    try {
+      this.showCelebrationImage();
+    } catch (e) {
+      console.error('[Celebration] showCelebrationImage failed:', e);
+    }
+
+    try {
+      this.fireConfetti();
+    } catch (e) {
+      console.error('[Celebration] fireConfetti failed:', e);
+    }
+
+    setTimeout(() => {
+      try {
+        this.showMessage();
+      } catch (e) {
+        console.error('[Celebration] showMessage failed:', e);
+      }
+    }, 3000);
+
+    setTimeout(() => {
+      try {
+        this.showShareButton();
+      } catch (e) {
+        console.error('[Celebration] showShareButton failed:', e);
+      }
+    }, 6000);
   }
 
   private playFanfare(): void {
@@ -84,20 +123,17 @@ class CelebrationController {
     this.fanfare.play().catch((err) => {
       console.warn('[Celebration] Audio playback blocked:', err);
     });
+    console.log('[Celebration] fanfare started');
   }
 
+  /** HTML overlay <img> に show class を付ける(CSS animation で降下) */
   private showCelebrationImage(): void {
-    if (!this.celebrationImage) return;
-
-    this.celebrationImage.setAttribute('visible', 'true');
-    this.celebrationImage.setAttribute(
-      'animation__position',
-      'property: position; from: 0 2 0; to: 0 0.5 0; dur: 1500; easing: easeOutBounce'
-    );
-    this.celebrationImage.setAttribute(
-      'animation__opacity',
-      'property: opacity; from: 0; to: 1; dur: 1000; easing: easeOutQuad'
-    );
+    if (!this.celebrationImage) {
+      console.warn('[Celebration] image element not found in DOM');
+      return;
+    }
+    this.celebrationImage.classList.add('show');
+    console.log('[Celebration] image .show class added');
   }
 
   private fireConfetti(): void {
@@ -132,16 +168,19 @@ class CelebrationController {
       }
     };
     frame();
+    console.log('[Celebration] confetti fired');
   }
 
   private showMessage(): void {
     if (!this.messageOverlay) return;
     this.messageOverlay.classList.add('show');
+    console.log('[Celebration] message shown');
   }
 
   private showShareButton(): void {
     if (!this.shareButton) return;
     this.shareButton.classList.add('show');
+    console.log('[Celebration] share button shown');
   }
 
   private shareOnTwitter(): void {
@@ -170,5 +209,19 @@ class CelebrationController {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  new CelebrationController();
+  console.log('[Celebration] DOMContentLoaded - initializing controller');
+  const controller = new CelebrationController();
+
+  // ?test=1 でセレブレーション演出を強制発火 (ステッカー無しで動作確認用)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('test') === '1') {
+    console.log('[Celebration] TEST MODE: triggering start() in 2 seconds');
+    setTimeout(() => {
+      console.log('[Celebration] TEST MODE: triggering now');
+      controller.start();
+    }, 2000);
+  }
+
+  // window グローバルにも公開 (devtools console から手動発火可能)
+  (window as any).__celebration = controller;
 });
