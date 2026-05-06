@@ -185,7 +185,7 @@ class CelebrationController {
 
   private shareOnTwitter(): void {
     const text = encodeURIComponent(
-      'Cor.Inc. CEO 寺田さん (@CorInc) の100週連続LT登壇を、ARで体験中! 🎺🎉 #LT100週 #CorInc #WebAR'
+      'Cor.Inc. CEO 寺田さん (@cor_terisuke) の100週連続LT登壇を、ARで体験中! 🎺🎉 #LT100週 #CorInc #WebAR'
     );
     const url = encodeURIComponent(window.location.href);
     window.open(
