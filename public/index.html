@@ -30,14 +30,12 @@
       overflow: hidden;
     }
 
-    /* a-scene のラッパー: position:fixed で viewport にフィット(body height に依存しない) */
+    /* a-scene のラッパー: position:absolute (公式 .example-container と同じ pattern) */
     .ar-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
       overflow: hidden;
+      position: absolute;
+      width: 100%;
+      height: 100%;
     }
 
     /* インストラクション (z-index 1000 で AR の上) */
